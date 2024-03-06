@@ -2,6 +2,7 @@ from PyQt5.QtWidgets import QApplication, QWidget, QHBoxLayout, QVBoxLayout, QGr
 import sys
 from Shuffle import create_deck, shuffle_deck, deal  # Adjusted import
 from Card import Card  
+from PyQt5.QtCore import Qt
 
 class Tricks(QWidget):
     def __init__(self):
@@ -21,19 +22,26 @@ class Tricks(QWidget):
         # Setup the layouts for each player with their dealt hand
         positions = [(2, 1), (1, 2), (0, 1), (1, 0)]  # Grid positions for bottom, right, top, left
         rotations = [0, 90, 180, 270]  # Rotations for each player's cards
+
         for i, hand in enumerate(self.hands):
-            playerLayout = QVBoxLayout() if i % 2 else QHBoxLayout()
+            playerLayout = QHBoxLayout() if i % 2 == 0 else QVBoxLayout()
+            playerLayout.setSpacing(-100)  # Adjust spacing for overlap. Make this more negative to increase overlap.
+
             for card in hand:
-                card_ui = Card(card.suit, card.value)  # Create a UI representation of the card
-                card_ui.setRotation(rotations[i])  # Set rotation
-                card_ui.setStyleSheet("border: 1px solid black;")  # Add border for debugging
+                card_ui = Card(card.suit, card.value)
+                card_ui.setRotation(rotations[i])  # Set the rotation for the player's cards
+                card_ui.setAlignment(Qt.AlignLeft | Qt.AlignTop)  # Ensure all cards align consistently
                 playerLayout.addWidget(card_ui)
-            # Add the player's layout to the main grid layout
+                # Ensure cards are stacked correctly by adjusting the Z-order
+                if playerLayout.count() > 1:
+                    card_ui.stackUnder(playerLayout.itemAt(playerLayout.count() - 2).widget())
+
             row, col = positions[i]
-            mainLayout.addLayout(playerLayout, row, col)
+            mainLayout.addLayout(playerLayout, row, col, alignment=Qt.AlignCenter)
 
         self.setLayout(mainLayout)
         self.show()
+
 
 
 if __name__ == '__main__':
